@@ -14,6 +14,8 @@
     <artifactId>foundation-parent</artifactId>
     <packaging>pom</packaging>
 
+    <name>Kakoo's Foundation Software project.</name>
+
     <modules>
         <module>common</module>
     </modules>
