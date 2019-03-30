@@ -33,5 +33,5 @@ notifications:
     rooms:
       # 'kakoo-softwares' is the Slack workplace.
       # 'travis-foundation' is the channel where Travis should inject posts for this project build.
-      - kakoo-softwares:${SLACK_TRAVIS_TOKEN}#travis-foundation
+      - kakoo-softwares:"${SLACK_TRAVIS_TOKEN}"#travis-foundation
      #secure: hk/G5/SSAQ5LD6eKFNB7TqvkMH+7QtJb7NINhoZ9+z8fKSuRoOPG8Jwnn9UaOlxSwhraK+eyXrYIvn0qY2ZwMAyF68ZfpEfEHc8VMaY688R0OJOsyVeGSVOXf3nDaC1SstgsXuLyM2xDoKg4rI1oP5SSbRMrJo1KaDhLUhbbK6O7gl//BlfvFsX8DHU6VILmn6dDxy85WJaLGzQ2gi5Of4GkfJf19f77FyPOUwSYYUs+3qwTvbN6ejv40Cbuo5nnmyskiRfJTScks1Piy988x1uuMm7Hom0TPziXLQc6hAKsDiGbdBut2EB/WztoVPWqyZ4lGJnyYjUdEIgcg0bw+A1TMgOUla+HOUPsKu7uKogIAUPot/J9GgSsMFZybCvG2SQN7vAm51FNrRt8C4aMt/mq2sn0axwZ4nN22bIpr30r9Jgykf5IQdiOEIoz+pLgUnHCrskd1NGMS1XjgQDPtveofC9w8EAJ2atoWnIEQm8L5K1aiNDCAPO+ZNS3Splvb2883KyNr4iP2hws/Eb2tr9CsJpv9j89Atjyw6RGwXOLGHtAUYWBEyDyoFMtwnLtZx+jEP5d1VSpyy1+LoriiwmsCxR5RrHyPfOnOfnKYOXjVlGyIAWp3gSdCGeSFq42JEZ6YxU9wX0+8Pq8nlqoYwDwqrXt79NzgONtgQMtC88=
