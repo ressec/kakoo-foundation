@@ -20,4 +20,38 @@
         <module>common</module>
     </modules>
 
+    <repositories>
+
+        <repository>
+            <id>nexus-snapshots</id>
+            <url>http://83.153.27.91:9086/nexus/content/groups/public-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>nexus-releases</id>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+            <url>http://83.153.27.91:9086/nexus/content/groups/public</url>
+        </repository>
+
+    </repositories>
+
 </project>
