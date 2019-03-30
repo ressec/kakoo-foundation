@@ -13,7 +13,6 @@
 
     <artifactId>foundation-parent</artifactId>
     <packaging>pom</packaging>
-
     <name>Kakoo's Foundation Software project - Parent</name>
 
     <modules>
