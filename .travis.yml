@@ -1,3 +1,8 @@
+#
+# Travis CI build file for the Kakoo Foundation Software projects.
+#
+# see https://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure
+
 language: java
 
 jdk:
@@ -13,25 +18,27 @@ addons:
       secure: "${SONAR_TOKEN}"
 
 script:
-  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -f pom.xml
-    -Dsonar.projectKey=ressec_kakoo-foundation
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -f pom.xml -Dsonar.projectKey=ressec_kakoo-foundation
 
 deploy:
+  skip_cleanup: true # Prevent Travis CI from resetting the working directory and deleting all changes made during the build!
   provider: script
   script: cp etc/deploy-settings.xml $HOME/.m2/settings.xml && mvn deploy -f pom.xml
-  skip_cleanup: true # Prevent Travis CI from resetting the working directory and deleting all changes made during the build!
   on:
+    # Set 'tags' to:
+    #   'true'  Will force the deployment of the artifact after a successful build only when the commit is tagged. So
+    #           even if a merge request to 'master' is successful, the built artifact will not be deployed to the repository.
+    #   'false' Will force the deployment of the artifact after a successful build only when merged on the 'master' branch.
     tags: false
 
 notifications:
-  email:
-    recipients:
-      - christophe.resse@gmail.com
-    on_success: change
-    on_failure: always
+  email: false # Default notification method.
+#    recipients:
+#      - christophe.resse@gmail.com
+#    on_success: change
+#    on_failure: always
   slack:
     rooms:
-      - secure: hk/G5/SSAQ5LD6eKFNB7TqvkMH+7QtJb7NINhoZ9+z8fKSuRoOPG8Jwnn9UaOlxSwhraK+eyXrYIvn0qY2ZwMAyF68ZfpEfEHc8VMaY688R0OJOsyVeGSVOXf3nDaC1SstgsXuLyM2xDoKg4rI1oP5SSbRMrJo1KaDhLUhbbK6O7gl//BlfvFsX8DHU6VILmn6dDxy85WJaLGzQ2gi5Of4GkfJf19f77FyPOUwSYYUs+3qwTvbN6ejv40Cbuo5nnmyskiRfJTScks1Piy988x1uuMm7Hom0TPziXLQc6hAKsDiGbdBut2EB/WztoVPWqyZ4lGJnyYjUdEIgcg0bw+A1TMgOUla+HOUPsKu7uKogIAUPot/J9GgSsMFZybCvG2SQN7vAm51FNrRt8C4aMt/mq2sn0axwZ4nN22bIpr30r9Jgykf5IQdiOEIoz+pLgUnHCrskd1NGMS1XjgQDPtveofC9w8EAJ2atoWnIEQm8L5K1aiNDCAPO+ZNS3Splvb2883KyNr4iP2hws/Eb2tr9CsJpv9j89Atjyw6RGwXOLGHtAUYWBEyDyoFMtwnLtZx+jEP5d1VSpyy1+LoriiwmsCxR5RrHyPfOnOfnKYOXjVlGyIAWp3gSdCGeSFq42JEZ6YxU9wX0+8Pq8nlqoYwDwqrXt79NzgONtgQMtC88=
-      # 'kakoo-softwares' is the Slack workplace.
-      # 'travis-foundation' is the channel where Travis should inject posts for this project build.
-      # - kakoo-softwares:KlswspYHL1Uq2X2F7UUazdL6#travis-foundation
+#       'kakoo-softwares' is the Slack workplace.
+#       'travis-foundation' is the channel where Travis should inject posts for this project build.
+       - kakoo-softwares:KlswspYHL1Uq2X2F7UUazdL6#travis-foundation
