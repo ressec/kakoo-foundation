@@ -14,8 +14,10 @@ package com.kakoo.foundation.common.annotation;
 import java.lang.annotation.*;
 
 /**
- * Annotation used to declare a Java type as being reserved by Hemajoo development team.<br>
- * Using such annotated classes by other developer is highly risky.
+ * Annotation used to declare a Java type as being reserved by Hemajoo development team.
+ * <p>
+ * Using such annotated classes in your own code is highly risky as they are supposed to be
+ * only used by Kakoo internal code.
  * <hr>
  * @author  <a href="mailto:christophe.resse@gmail.com">Resse Christophe - Hemajoo</a>
  * @version 1.0.0

@@ -18,8 +18,9 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 /**
- * Annotation used to declare a Java type as being experimental.<br>
- * Be aware that, by using such Java types, Hemajoo can at any moment change the
+ * Annotation used to declare a Java type as being experimental.
+ * <p>
+ * Using such annotated Java types in your own code is highly risky as Kakoo can, at any moment, change the
  * implementation of such classes.
  * <hr>
  * @author  <a href="mailto:christophe.resse@gmail.com">Resse Christophe - Hemajoo</a>
