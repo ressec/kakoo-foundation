@@ -19,7 +19,7 @@ import java.lang.annotation.*;
  * Using such annotated classes in your own code is highly risky as they are supposed to be
  * only used by Kakoo internal code.
  * <hr>
- * @author  <a href="mailto:christophe.resse@gmail.com">Resse Christophe - Hemajoo</a>
+ * @author  <a href="mailto:christophe.resse@gmail.com">Resse Christophe - Kakoo</a>
  * @version 1.0.0
  */
 @Documented
