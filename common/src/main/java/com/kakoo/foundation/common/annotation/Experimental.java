@@ -23,7 +23,7 @@ import java.lang.annotation.ElementType;
  * Using such annotated Java types in your own code is highly risky as Kakoo can, at any moment, change the
  * implementation of such classes.
  * <hr>
- * @author  <a href="mailto:christophe.resse@gmail.com">Resse Christophe - Hemajoo</a>
+ * @author  <a href="mailto:christophe.resse@gmail.com">Resse Christophe - Kakoo</a>
  * @version 1.0.0
  */
 @Documented
