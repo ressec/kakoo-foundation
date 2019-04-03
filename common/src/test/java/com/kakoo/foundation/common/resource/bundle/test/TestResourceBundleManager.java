@@ -171,12 +171,40 @@ public final class TestResourceBundleManager
     @Test
     public final void testRetrieveKeyCurrentLocale()
     {
+        String expected;
+
         // Set the default locale of the JVM.
         ResourceBundleManager.setLocale(Locale.getDefault());
 
         ResourceBundleManager.clear();
         ResourceBundleManager.register("i18n/kakoo-foundation-common");
-        Assert.assertEquals("Français", ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
+        switch (ResourceBundleManager.getLocale().getLanguage())
+        {
+            case "en":
+                expected = "English";
+                break;
+
+            case "de":
+                expected = "Deutsch";
+                break;
+
+            case "fr":
+                expected = "Français";
+                break;
+
+            case "it":
+                expected = "Italiano";
+                break;
+
+            case "es":
+                expected = "Español";
+                break;
+
+            default:
+                throw new ResourceBundleException(String.format("Unhandled: '%s' locale", ResourceBundleManager.getLocale()));
+        }
+
+        Assert.assertEquals(expected, ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
     }
 
     /**
