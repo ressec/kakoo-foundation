@@ -13,7 +13,6 @@ package com.kakoo.foundation.common.resource.bundle.annotation;
 
 import com.kakoo.foundation.common.annotation.visitor.IAnnotationTypeVisitor;
 import com.kakoo.foundation.common.resource.bundle.IBundle;
-import com.kakoo.foundation.common.resource.bundle.ResourceBundleManager;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j;
 
@@ -85,14 +84,14 @@ public final class BundleAnnotationTypeVisitor implements IAnnotationTypeVisitor
      */
     private void callForRegistration(final @NonNull String className)
     {
-        try
-        {
-            ResourceBundleManager.register(Class.forName(className));
-        }
-        catch (ClassNotFoundException e)
-        {
-            log.error(e.getMessage(), e);
-        }
+//        try
+//        {
+//            ResourceBundleManager.register(Class.forName(className));
+//        }
+//        catch (ClassNotFoundException e)
+//        {
+//            log.error(e.getMessage(), e);
+//        }
     }
 }
 

@@ -28,5 +28,5 @@ public interface IAnnotationTypeVisitor extends AnnotationDetector.TypeReporter
      * @throws ClassNotFoundException Thrown in case an error occurred while trying to
      * delegate the registration of the annotated class.
      */
-    public void delegateRegistration() throws ClassNotFoundException;
+    void delegateRegistration() throws ClassNotFoundException;
 }

@@ -102,7 +102,9 @@ public abstract class AbstractCheckedException extends Exception
     @SuppressWarnings({ "unchecked" })
     public AbstractCheckedException(final Enum<?> key, final Object... parameters)
     {
-        super(key instanceof IBundle ? MessageFormat.format(ResourceBundleManager.getMessage((Enum<? extends IBundle>) key), parameters) : MessageFormat.format(((IException) key).getMessage(), parameters));
+        super(key instanceof IBundle
+                ? MessageFormat.format(ResourceBundleManager.getMessage((Enum<? extends IBundle>) key), parameters)
+                : MessageFormat.format(((IException) key).getMessage(), parameters));
 
         // Do we have an exception in the parameter list?
         for (Object o : parameters)

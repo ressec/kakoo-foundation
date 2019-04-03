@@ -12,27 +12,30 @@
 package com.kakoo.foundation.common.resource.bundle;
 
 /**
- * Enumeration of the resource bundle load strategy types.
+ * Enumeration of the status types.
  * <hr>
  * @author <a href="mailto:christophe.resse@gmail.com">Christophe Resse - Kakoo</a>
  * @version 1.0.0
  */
-public enum BundleLoadStrategyType
+public enum StatusType
 {
     /**
-     * Strict bundle load strategy.
-     * <p>
-     * When set to STRICT, the resource bundle file must exist in the language set in the resource bundle manager. If
-     * not, an exception will be raised.
+     * Unknown status.
      */
-    STRICT,
+    UNKNOWN,
 
     /**
-     * Lenient bundle load strategy.
-     * <p>
-     * When set to LENIENT, if the resource bundle file does not exist in the language set in the resource bundle
-     * manager, a default one will be loaded instead. If no default resource bundle file is found, an exception will
-     * be raised.
+     * Initializing status.
      */
-    LENIENT
+    INITIALIZING,
+
+    /**
+     * Initialized status.
+     */
+    INITIALIZED,
+
+    /**
+     * Refreshing status.
+     */
+    REFRESHING
 }
