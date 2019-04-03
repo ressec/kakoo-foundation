@@ -120,7 +120,7 @@ public final class TestResourceBundleManager
     public final void testClearCache()
     {
         ResourceBundleManager.register("i18n/kakoo-foundation-common");
-        Assert.assertEquals("Français", ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
+        Assert.assertEquals(getExpectedDummyLanguageValue(), ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
         ResourceBundleManager.clear();
         ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language");
     }
@@ -178,33 +178,7 @@ public final class TestResourceBundleManager
 
         ResourceBundleManager.clear();
         ResourceBundleManager.register("i18n/kakoo-foundation-common");
-        switch (ResourceBundleManager.getLocale().getLanguage())
-        {
-            case "en":
-                expected = "English";
-                break;
-
-            case "de":
-                expected = "Deutsch";
-                break;
-
-            case "fr":
-                expected = "Français";
-                break;
-
-            case "it":
-                expected = "Italiano";
-                break;
-
-            case "es":
-                expected = "Español";
-                break;
-
-            default:
-                throw new ResourceBundleException(String.format("Unhandled: '%s' locale", ResourceBundleManager.getLocale()));
-        }
-
-        Assert.assertEquals(expected, ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
+        Assert.assertEquals(getExpectedDummyLanguageValue(), ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
     }
 
     /**
@@ -244,5 +218,43 @@ public final class TestResourceBundleManager
         ResourceBundleManager.clear();
         ResourceBundleManager.register("i18n/kakoo-foundation-common");
         ResourceBundleManager.get("kakoo-foundation-common.test.dummy.value", Locale.GERMAN);
+    }
+
+    /**
+     * Returns the expected dummy language value according to the current locale.
+     * <p>
+     * @return Dummy language value.
+     */
+    private String getExpectedDummyLanguageValue()
+    {
+        String expected;
+
+        switch (ResourceBundleManager.getLocale().getLanguage())
+        {
+            case "en":
+                expected = "English";
+                break;
+
+            case "de":
+                expected = "Deutsch";
+                break;
+
+            case "fr":
+                expected = "Français";
+                break;
+
+            case "it":
+                expected = "Italiano";
+                break;
+
+            case "es":
+                expected = "Español";
+                break;
+
+            default:
+                throw new ResourceBundleException(String.format("Unhandled: '%s' locale", ResourceBundleManager.getLocale()));
+        }
+
+        return expected;
     }
 }
