@@ -122,7 +122,7 @@ public final class TestResourceBundleManager
         ResourceBundleManager.register("i18n/kakoo-foundation-common");
         Assert.assertEquals("Français", ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
         ResourceBundleManager.clear();
-        Assert.assertEquals("Français", ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
+        ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language");
     }
 
     /**
