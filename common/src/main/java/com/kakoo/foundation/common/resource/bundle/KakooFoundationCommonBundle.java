@@ -21,7 +21,7 @@ import com.kakoo.foundation.common.resource.bundle.annotation.Bundle;
  * @version 1.0.0
  */
 @SuppressWarnings("nls")
-@Bundle(file="bundle/hemajoo-foundation-common", root="hemajoo-foundation-common.", priority = 1) // This one must be loaded first!
+@Bundle(file="bundle/kakoo-foundation-common", root="kakoo-foundation-common.", priority = 1) // This one must be loaded first!
 public enum KakooFoundationCommonBundle implements IBundle
 {
     /*
@@ -102,7 +102,7 @@ public enum KakooFoundationCommonBundle implements IBundle
      * <p>
      * @param key Resource bundle key.
      */
-    private KakooFoundationCommonBundle(final String key)
+    KakooFoundationCommonBundle(final String key)
     {
         this.key = key;
     }
