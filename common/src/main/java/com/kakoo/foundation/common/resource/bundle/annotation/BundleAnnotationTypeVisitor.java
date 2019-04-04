@@ -13,14 +13,12 @@ package com.kakoo.foundation.common.resource.bundle.annotation;
 
 import com.kakoo.foundation.common.annotation.visitor.IAnnotationTypeVisitor;
 import com.kakoo.foundation.common.resource.bundle.IBundle;
+import com.kakoo.foundation.common.resource.bundle.ResourceBundleManager;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Class used to automatically detect classes annotated with the {@link Bundle} annotation.
@@ -32,9 +30,14 @@ import java.util.TreeMap;
 public final class BundleAnnotationTypeVisitor implements IAnnotationTypeVisitor
 {
     /**
-     * Collection of bundles to auto-register (by priority).
+     * Collection of detected annotated types with the @Bundle annotation (grouped by priority).
      */
-    private Map<Integer, List<String>> files = new TreeMap<>();
+    private Map<Integer, List<String>> bundleAnnotated = new TreeMap<>();
+
+    /**
+     * Collection of detected annotated types with the @Bundle annotation (grouped by priority).
+     */
+    private Map<Class<? extends Annotation>, Map<Integer,  List<String>>> annotated = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     @Override
@@ -43,22 +46,84 @@ public final class BundleAnnotationTypeVisitor implements IAnnotationTypeVisitor
         return new Class[] { Bundle.class };
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className)
+    public void reportTypeAnnotation(Class<? extends Annotation> annotationClass, String annotatedClassName)
     {
-        List<String> classes = null;
-        Integer key = null;
+        if (annotationClass == Bundle.class)
+        {
+            reportTypeAnnotationBundle(annotatedClassName);
+        }
+    }
 
-        Class<? extends IBundle> bClass;
+    @Override
+    public void delegateRegistration()
+    {
+        Map<Integer, List<String>> ordered;
+        List<String> classes;
+
+        for (Class<? extends Annotation> annotationClass : annotated.keySet())
+        {
+            ordered = annotated.get(annotationClass);
+            for (Integer priority : ordered.keySet() )
+            {
+                classes = ordered.get(priority);
+                for (String annotatedClass : classes)
+                {
+                    callForRegistration(annotationClass, annotatedClass);
+                }
+            }
+        }
+    }
+
+    /**
+     * Call the resource bundle manager to register the given annotated class for the given annotation.
+     * <hr>
+     * @param annotationClass Annotation class.
+     * @param annotatedClassName Name of the annotated class.
+     */
+    private void callForRegistration(final @NonNull Class<? extends Annotation> annotationClass, final @NonNull String annotatedClassName)
+    {
         try
         {
-            bClass = (Class<? extends IBundle>) Class.forName(className);
-            Bundle a = bClass.getAnnotation(Bundle.class);
-            key = a.priority();
-            classes = files.containsKey(key) ? files.get(key) : new ArrayList<>();
-            classes.add(className);
-            files.put(Integer.valueOf(a.priority()), classes);
+            ResourceBundleManager.register(annotationClass, Class.forName(annotatedClassName));
+        }
+        catch (ClassNotFoundException e)
+        {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Reports annotated types with the @Bundle annotation.
+     * <p>
+     * @param annotatedClassName Annotated class name.
+     */
+    @SuppressWarnings("unchecked")
+    private void reportTypeAnnotationBundle(final @NonNull  String annotatedClassName)
+    {
+        List<String> classes;
+        Map<Integer, List<String>> ordered;
+
+        try
+        {
+            Class<? extends IBundle> bundleAnnotatedClass = (Class<? extends IBundle>) Class.forName(annotatedClassName);
+            Bundle bundle = bundleAnnotatedClass.getAnnotation(Bundle.class);
+
+            ordered = annotated.get(Bundle.class);
+            if (ordered == null)
+            {
+                ordered = new TreeMap<>();
+            }
+
+            classes = ordered.get(bundle.priority());
+            if (classes == null)
+            {
+                classes = new ArrayList<>();
+            }
+
+            classes.add(annotatedClassName);
+            ordered.put(bundle.priority(), classes);
+            annotated.put(Bundle.class, ordered);
         }
         catch (ClassNotFoundException e)
         {
@@ -66,33 +131,6 @@ public final class BundleAnnotationTypeVisitor implements IAnnotationTypeVisitor
         }
     }
 
-    @Override
-    public void delegateRegistration()
-    {
-        files.entrySet()
-                .stream()
-                .forEach(e -> e.getValue()
-                        .stream()
-                        .forEach(this::callForRegistration));
-    }
-
-    /**
-     * Call the resource bundle manager to register the given class annotated with
-     * the {@link Bundle} annotation.
-     * <hr>
-     * @param className Name of the class annotated with the {@link Bundle} annotation.
-     */
-    private void callForRegistration(final @NonNull String className)
-    {
-//        try
-//        {
-//            ResourceBundleManager.register(Class.forName(className));
-//        }
-//        catch (ClassNotFoundException e)
-//        {
-//            log.error(e.getMessage(), e);
-//        }
-    }
 }
 
 

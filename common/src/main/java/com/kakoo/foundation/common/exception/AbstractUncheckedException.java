@@ -55,7 +55,7 @@ public abstract class AbstractUncheckedException extends RuntimeException
      */
     public AbstractUncheckedException(final Enum<? extends IBundle> key)
     {
-        super(ResourceBundleManager.getMessage(key));
+        super(ResourceBundleManager.get(key));
     }
 
     /**
@@ -68,7 +68,7 @@ public abstract class AbstractUncheckedException extends RuntimeException
     public AbstractUncheckedException(final Enum<?> key, final Object... parameters)
     {
         super(key instanceof IBundle
-                ? MessageFormat.format(ResourceBundleManager.getMessage((Enum<? extends IBundle>) key), parameters)
+                ? MessageFormat.format(ResourceBundleManager.get((Enum<? extends IBundle>) key), parameters)
                 : MessageFormat.format(((IException) key).getMessage(), parameters));
 
         // Do we have an exception in the parameter list?

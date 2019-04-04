@@ -37,5 +37,10 @@ public enum StatusType
     /**
      * Refreshing status.
      */
-    REFRESHING
+    REFRESHING,
+
+    /**
+     * Error status.
+     */
+    ERROR
 }

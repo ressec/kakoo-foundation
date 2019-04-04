@@ -12,6 +12,7 @@
 package com.kakoo.foundation.common.resource.bundle;
 
 import com.kakoo.foundation.common.resource.bundle.annotation.Bundle;
+import lombok.Getter;
 
 /**
  * Enumeration of the resource bundle keys of the <b>Kakoo Common</b> component. Each enumerated value maps to a key
@@ -21,7 +22,7 @@ import com.kakoo.foundation.common.resource.bundle.annotation.Bundle;
  * @version 1.0.0
  */
 @SuppressWarnings("nls")
-@Bundle(file="bundle/kakoo-foundation-common", root="kakoo-foundation-common.", priority = 1) // This one must be loaded first!
+@Bundle(file="i18n/kakoo-foundation-common", root="kakoo-foundation-common.", priority = 1) // This one must be loaded first!
 public enum KakooFoundationCommonBundle implements IBundle
 {
     /*
@@ -37,6 +38,11 @@ public enum KakooFoundationCommonBundle implements IBundle
      * A dummy test message for the language.
      */
     TEST_DUMMY_LANGUAGE("test.dummy.language"),
+
+    /**
+     * A dummy test formatted message.
+     */
+    TEST_DUMMY_MESSAGE_FORMATTED("test.dummy.message.formatted"),
 
     /*
      * ---------- Resource.Bundle.* ----------
@@ -95,6 +101,7 @@ public enum KakooFoundationCommonBundle implements IBundle
     /**
      * Resource bundle key.
      */
+    @Getter
     private final String key;
 
     /**
@@ -108,21 +115,9 @@ public enum KakooFoundationCommonBundle implements IBundle
     }
 
     @Override
-    public final String getKey()
-    {
-        Bundle annotation = this.getClass().getAnnotation(Bundle.class);
-        if (annotation != null)
-        {
-            return annotation.root().endsWith(".") ? annotation.root() + key : annotation.root() + "." + key;
-        }
-
-        return key;
-    }
-
-    @Override
     public final String getValue()
     {
-        return ResourceBundleManager.getMessage(this);
+        return ResourceBundleManager.get(this);
     }
 }
 
