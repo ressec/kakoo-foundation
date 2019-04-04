@@ -9,15 +9,16 @@
  * License can be consulted at http://www.apache.org/licenses/LICENSE-2.0
  * ---------------------------------------------------------------------------
  */
-package com.kakoo.foundation.common.resource.bundle.test;
+package com.kakoo.foundation.common.resource.properties.test;
 
 import com.kakoo.foundation.common.resource.bundle.ResourceBundleException;
 import com.kakoo.foundation.common.resource.bundle.ResourceBundleManager;
-import com.kakoo.foundation.common.resource.properties.test.TestEasyPropertiesObject;
 import lombok.extern.log4j.Log4j;
 import org.junit.*;
 
 import java.util.Locale;
+
+import static org.junit.Assert.fail;
 
 /**
  * A test case for some of the {@code easy-props} annotations.
@@ -107,7 +108,10 @@ public final class TestPropertiesAnnotations
     public final void testGetSystemProperty()
     {
         TestEasyPropertiesObject object = new TestEasyPropertiesObject();
-        Assert.assertEquals("Mac OS X", object.getOperatingSystemName());
+        if (object.getOperatingSystemName().isEmpty())
+        {
+            fail("System property: os.name should not be empty!");
+        }
     }
 
     /**
