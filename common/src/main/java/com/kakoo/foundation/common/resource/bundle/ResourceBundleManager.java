@@ -11,7 +11,9 @@
  */
 package com.kakoo.foundation.common.resource.bundle;
 
-import com.kakoo.foundation.common.exception.NotImplementedException;
+import com.kakoo.foundation.common.resource.bundle.annotation.Bundle;
+import com.kakoo.foundation.common.resource.bundle.annotation.BundleAnnotationTypeVisitor;
+import eu.infomas.annotation.AnnotationDetector;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Synchronized;
@@ -19,6 +21,8 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j;
 import org.jeasy.props.api.PropertiesInjector;
 
+import java.lang.annotation.Annotation;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,6 +50,11 @@ public class ResourceBundleManager
     private static final Map<Locale, List<ResourceBundle>> BUNDLES = new ConcurrentHashMap<>();
 
     /**
+     * Thread-safe collection of annotated classes.
+     */
+    private static final Map<Class<? extends Annotation>, Map<Class<?>, String>> ANNOTATION_CLASSES = new ConcurrentHashMap<>();
+
+    /**
      * Resource bundle status type.
      */
     @Getter
@@ -58,7 +67,7 @@ public class ResourceBundleManager
 
     /**
      * Initializes the resource bundle manager.
-     * <p>
+     *
      * @throws ResourceBundleManagerException Thrown if the initialization of the resource bundle manager has failed.
      */
     @Synchronized
@@ -71,15 +80,16 @@ public class ResourceBundleManager
             // Instantiates a properties injector for direct injection of properties.
             propertiesInjector = aNewPropertiesInjector();
 
-            // TODO Detect annotated classes
+            // Automatically detect annotated elements.
+            autoDetectAnnotated();
 
             ResourceBundleManager.status = StatusType.INITIALIZED;
         }
     }
 
     /**
-     * Sets the locale.
-     * <p>
+     * Sets the default locale of the resource bundle manager.
+     *
      * @param locale Locale to set.
      * @return Previous locale.
      */
@@ -98,7 +108,7 @@ public class ResourceBundleManager
 
     /**
      * Checks if the given bundle file name for the given locale exist.
-     * <p>
+     *
      * @param baseBundleName Bundle base file name.
      * @return {@code True} if the given bundle file exist, {@code false} otherwise.
      */
@@ -122,7 +132,7 @@ public class ResourceBundleManager
 
     /**
      * Gets a resource bundle value given its key.
-     * <p>
+     *
      * @param key Key to retrieve.
      * @return Resource bundle value.
      */
@@ -133,7 +143,7 @@ public class ResourceBundleManager
 
     /**
      * Gets the resource bundle value of the given key.
-     * <p>
+     *
      * @param key Key to retrieve.
      * @param locale Locale to use.
      * @return The resource bundle value if found.
@@ -141,12 +151,64 @@ public class ResourceBundleManager
      */
     public static final String get(final @NonNull String key, final @NonNull Locale locale)
     {
-        return  retrieve(lookup(key), key, locale);
+        return retrieve(lookup(key, locale), key, locale);
+    }
+
+    /**
+     * Gets a resource bundle value given its key using an enumerated value.
+     *
+     * @param key Key to retrieve.
+     * @return Resource bundle value.
+     */
+    public static final String get(final Enum<? extends IBundle> key)
+    {
+        return get(key, locale);
+    }
+
+    /**
+     * Gets a resource bundle value given its key using an enumerated value.
+     *
+     * @param key Key to retrieve.
+     * @param locale Locale to use.
+     * @return Resource bundle value.
+     */
+    public static final String get(final Enum<? extends IBundle> key, final @NonNull Locale locale)
+    {
+        initialize();
+
+        return get(key, locale, null);
+    }
+
+    /**
+     * Gets a resource bundle value given its key using an enumerated value.
+     *
+     * @param key Key to retrieve.
+     * @param locale Locale to use.
+     * @return Resource bundle value.
+     */
+    public static final String get(final Enum<? extends IBundle> key, final @NonNull Locale locale, final Object... parameters)
+    {
+        initialize();
+
+        return extract(key, locale, parameters);
+    }
+
+    /**
+     * Gets the resource bundle value of the given key.
+     *
+     * @param key Key to retrieve.
+     * @param locale Locale to use.
+     * @return The resource bundle value if found.
+     * @throws ResourceBundleException Thrown in case the given key cannot be found.
+     */
+    public static final String get(final @NonNull String key, final @NonNull Locale locale, final Object... parameters)
+    {
+        return retrieve(lookup(key), key, locale, parameters);
     }
 
     /**
      * Lookup the given key to determine in which bundle it is located.
-     * <p>
+     *
      * @param key Key to lookup.
      * @return If found, the resource bundle base name.
      * @throws ResourceBundleManagerException Thrown in case no resource bundle is registered.
@@ -154,54 +216,111 @@ public class ResourceBundleManager
      */
     private static String lookup(final @NonNull String key)
     {
+        return lookup(key, locale);
+    }
+
+    /**
+     * Lookup the given key to determine in which bundle it is located.
+     *
+     * @param key Key to lookup.
+     * @return If found, the resource bundle base name.
+     * @throws ResourceBundleManagerException Thrown in case no resource bundle is registered.
+     * @throws ResourceBundleException Thrown in case the given key cannot be found.
+     */
+    private static String lookup(final @NonNull String key, final @NonNull Locale locale)
+    {
+        String baseBundleName;
+
         if (BUNDLES.size() == 0)
         {
             throw new ResourceBundleManagerException("No resource bundle registered!");
         }
 
         // We are looking with the default locale.
-        for (ResourceBundle bundle : BUNDLES.get(Locale.getDefault()))
+        if (!BUNDLES.containsKey(locale))
         {
-            if (bundle.containsKey(key))
+            // Do a lookup with the default locale.
+            for (ResourceBundle bundle : BUNDLES.get(ResourceBundleManager.locale))
             {
-                return bundle.getBaseBundleName();
+                if (bundle.containsKey(key))
+                {
+                    baseBundleName =  bundle.getBaseBundleName();
+                    if (baseBundleName != null)
+                    {
+                        return baseBundleName;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (ResourceBundle bundle : BUNDLES.get(locale))
+            {
+                if (bundle.containsKey(key))
+                {
+                    return bundle.getBaseBundleName();
+                }
             }
         }
 
-        throw new ResourceBundleException(String.format("Can't find key: '%s'", key));
+        throw new ResourceBundleException(String.format("Can't register resource bundle find key: '%s'", key));
     }
 
     /**
      * Retrieves the given key.
-     * <p>
+     *
      * @param baseBundleName Base bundle file name.
      * @param key Key o retrieve.
      * @param locale Locale to use.
      * @return If found, the resource bundle value.
      * @throws ResourceBundleException Thrown in case the given key cannot be found.
      */
-    private static String retrieve(final @NonNull String baseBundleName,  final @NonNull String key, final @NonNull Locale locale)
+    private static String retrieve(final @NonNull String baseBundleName, final @NonNull String key, final @NonNull Locale locale)
     {
+        return retrieve(baseBundleName, key, locale, new Object[]{});
+    }
+
+    /**
+     * Retrieves the given key.
+     *
+     * @param baseBundleName Base bundle file name.
+     * @param key Key o retrieve.
+     * @param locale Locale to use.
+     * @return If found, the resource bundle value.
+     * @throws ResourceBundleException Thrown in case the given key cannot be found.
+     */
+    private static String retrieve(final @NonNull String baseBundleName,  final @NonNull String key, final @NonNull Locale locale, final Object... parameters)
+    {
+        if (BUNDLES.get(locale) == null)
+        {
+            // Try to register the resource bundle in the requested locale.
+            register(baseBundleName, locale);
+        }
+
         List<ResourceBundle> list = BUNDLES.get(locale);
         if (list == null)
         {
-            throw new ResourceBundleException(String.format("Can't find bundle base name: '%s' for locale: '%s'", baseBundleName, locale));
+            // Try to load it from the default locale.
+            list = BUNDLES.get(ResourceBundleManager.locale);
+            if (list == null)
+            {
+                throw new ResourceBundleException(String.format("Can't find resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
+            }
         }
 
         for (ResourceBundle bundle : list)
         {
             if (bundle.getBaseBundleName().equals(baseBundleName))
             {
-                return bundle.getString(key);
+                return MessageFormat.format(bundle.getString(key), parameters);
             }
         }
 
-        throw new ResourceBundleException(String.format("Can't find key: '%s'", key));
+        throw new ResourceBundleException(String.format("Can't find resource bundle key: '%s'", key));
     }
 
     /**
      * Registers a resource bundle file for the current locale.
-     * <p>
      * @param baseBundleName Base bundle file name.
      */
     @Synchronized
@@ -214,13 +333,17 @@ public class ResourceBundleManager
 
     /**
      * Registers a resource bundle file for the given locale.
-     * <p>
+     * <br>
+     * If the resource bundle in the given locale cannot be found, the resource bundle in the default locale is
+     * registered.
      * @param baseBundleName Base bundle file name.
      * @param locale Locale.
      */
     @Synchronized
     public static final void register(final @NonNull String baseBundleName, final @NonNull Locale locale)
     {
+        ResourceBundle bundle;
+
         initialize();
 
         List<ResourceBundle> resources;
@@ -236,43 +359,139 @@ public class ResourceBundleManager
 
             resources.add(ResourceBundle.getBundle(baseBundleName, Locale.getDefault()));
             BUNDLES.put(Locale.getDefault(), resources);
+            log.info(String.format("Registered resource bundle file: '%s', for default locale: '%s'", baseBundleName, Locale.getDefault()));
         }
 
-        // Register the bundle using the given locale.
-        if (!exist(baseBundleName, locale))
+        // Register the bundle using the given locale if not the same as the current locale.
+        if (locale != ResourceBundleManager.locale)
         {
-            resources = BUNDLES.get(locale);
-            if (resources == null)
+            if (!exist(baseBundleName, locale))
             {
-                resources = new ArrayList<>();
-            }
+                resources = BUNDLES.get(locale);
+                if (resources == null)
+                {
+                    resources = new ArrayList<>();
+                }
 
-            resources.add(ResourceBundle.getBundle(baseBundleName, locale));
-            BUNDLES.put(locale, resources);
-        }
-        else
-        {
-            log.info(String.format("Already registered bundle base file name: '%s', locale: '%s'", baseBundleName, locale));
+                bundle = ResourceBundle.getBundle(baseBundleName, locale);
+                if (bundle.getLocale() == locale)
+                {
+                    resources.add(ResourceBundle.getBundle(baseBundleName, locale));
+                    BUNDLES.put(locale, resources);
+                    log.info(String.format("Registered resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
+                }
+                else
+                {
+                    log.warn(String.format("Can't find resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
+                }
+            }
+            else
+            {
+                log.info(String.format("Already registered resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
+            }
         }
     }
 
     /**
-     * Clears all registered resource bundle.
+     * Registers an annotated class.
+     * @param annotationClass Annotation class.
+     * @param annotatedClass Annotated class.
+     */
+    public static final void register(final @NonNull Class<? extends Annotation> annotationClass, final @NonNull Class<?> annotatedClass)
+    {
+        initialize();
+
+        if (annotationClass.isAssignableFrom(Bundle.class))
+        {
+            registerBundleAnnotatedClass(annotationClass, annotatedClass);
+        }
+    }
+
+    /**
+     * Registers a class annotated with the {@link Bundle} annotation.
+     * @param annotationClass Annotation class.
+     * @param annotatedClass Annotated class.
+     */
+    private static void registerBundleAnnotatedClass(final @NonNull Class<? extends Annotation> annotationClass, final @NonNull Class<?> annotatedClass)
+    {
+        // Extract the resource bundle file name.
+        Bundle annotation = annotatedClass.getAnnotation(Bundle.class);
+        String baseBundleName = annotation.file();
+
+        if (check(annotationClass, annotatedClass, baseBundleName))
+        {
+            throw new ResourceBundleException(
+                    String.format("Already registered annotated class: '%s' for annotation: '%s' with resource bundle file: '%s'",
+                            annotatedClass.getName(), annotationClass.getName(), baseBundleName));
+        }
+
+        // Keep a trace of this association between the annotation, the annotated class and the bundle file name.
+        update(annotationClass, annotatedClass, baseBundleName);
+    }
+
+    /**
+     * Checks if the given annotation class is already registered for the given annotated class.
+     * @param annotationClass Annotation class.
+     * @param annotatedClass Annotated class.
+     * @param baseBundleName Base bundle file name.
+     * @return {@code True} if already registered, {@code false} otherwise.
+     */
+    private static boolean check(final @NonNull Class<? extends Annotation> annotationClass, final @NonNull Class<?> annotatedClass, final @NonNull String baseBundleName)
+    {
+        Map<Class<?>, String> classes = ANNOTATION_CLASSES.get(annotationClass);
+        if (classes != null)
+        {
+            String filename = classes.get(annotatedClass);
+            return (filename != null && filename.equals(baseBundleName));
+        }
+
+        return false;
+    }
+
+    /**
+     * Updates the data structure keeping a trace of the association between the annotation class, the annotated class and the resource bundle file name.
+     * @param annotationClass Annotation class.
+     * @param annotatedClass Annotated class.
+     * @param baseBundleName Base bundle file name.
+     */
+    private static void update(final @NonNull Class<? extends Annotation> annotationClass, final @NonNull Class<?> annotatedClass, final @NonNull String baseBundleName)
+    {
+        String filename;
+
+        Map<Class<?>, String> classes = ANNOTATION_CLASSES.get(annotationClass);
+        if (classes == null)
+        {
+            classes = new HashMap<>();
+        }
+
+        filename = classes.get(annotatedClass);
+        if (filename == null)
+        {
+            classes.put(annotatedClass, baseBundleName);
+            ANNOTATION_CLASSES.put(annotationClass, classes);
+
+            register(baseBundleName);
+        }
+    }
+
+    /**
+     * Clears all registered resource bundles.
+     * <p>
+     * Only the directly registered resource bundles are cleared, not the ones registered through annotations.
+     * </p>
      */
     @Synchronized
     public static final void clear()
     {
         initialize();
 
+        // Clear all the bundle files loaded directly.
         BUNDLES.clear();
-    }
 
-    @Synchronized
-    public static final String getMessage(final @NonNull Enum<? extends IBundle> key, Object... parameters)
-    {
-        initialize();
+        // Reload the annotated elements.
+        reloadAnnotated();
 
-        throw new NotImplementedException();
+        log.info("Cleared the resource bundle cache");
     }
 
     /**
@@ -308,8 +527,7 @@ public class ResourceBundleManager
     }
 
     /**
-     * Returns the list of bundle file base name registered for a given locale.
-     * <p>
+     * Returns a list of the bundle file names registered for a given locale.
      * @param locale Locale.
      * @return List of resource bundle base name registered.
      */
@@ -324,5 +542,69 @@ public class ResourceBundleManager
         }
 
         return result;
+    }
+
+    /**
+     * Automatically detect annotated elements on the classpath.
+     * @see BundleAnnotationTypeVisitor
+     * @see AnnotationDetector
+     */
+    private static void autoDetectAnnotated()
+    {
+        try
+        {
+            final BundleAnnotationTypeVisitor visitor = new BundleAnnotationTypeVisitor();
+            final AnnotationDetector detector = new AnnotationDetector(visitor);
+            detector.detect();
+
+            visitor.delegateRegistration();
+        }
+        catch (Exception e)
+        {
+            ResourceBundleManager.status = StatusType.ERROR;
+            throw new ResourceBundleException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extracts the resource bundle message.
+     * @param key Key of the resource bundle.
+     * @param parameters Parameters for message formatting.
+     * @return Formatted message.
+     */
+    private static String extract(final @NonNull Enum<? extends IBundle> key, final Object... parameters)
+    {
+        return extract(key, locale, parameters);
+    }
+
+    /**
+     * Extracts the resource bundle message.
+     * @param key Key of the resource bundle.
+     * @param locale Locale to use.
+     * @param parameters Parameters for message formatting.
+     * @return Formatted message.
+     */
+    private static String extract(final @NonNull Enum<? extends IBundle> key, final @NonNull Locale locale, final Object... parameters)
+    {
+        Bundle annotation = key.getDeclaringClass().getAnnotation(Bundle.class);
+        String aKey = ((IBundle) key).getKey();
+
+        aKey = annotation.root().endsWith(".") ? annotation.root() + aKey : annotation.root() + "." + aKey;
+
+        return get(aKey, locale, parameters);
+    }
+
+    /**
+     * Reload the resource bundles associated with annotated classes.
+     */
+    private static void reloadAnnotated()
+    {
+        for (Map<Class<?>, String> annotationClass : ANNOTATION_CLASSES.values())
+        {
+            for (String baseBundleName : annotationClass.values())
+            {
+                register(baseBundleName);
+            }
+        }
     }
 }

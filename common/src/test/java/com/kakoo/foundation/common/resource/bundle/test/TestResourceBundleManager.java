@@ -11,9 +11,9 @@
  */
 package com.kakoo.foundation.common.resource.bundle.test;
 
+import com.kakoo.foundation.common.resource.bundle.KakooFoundationCommonBundle;
 import com.kakoo.foundation.common.resource.bundle.ResourceBundleException;
 import com.kakoo.foundation.common.resource.bundle.ResourceBundleManager;
-import com.kakoo.foundation.common.resource.bundle.ResourceBundleManagerException;
 import lombok.extern.log4j.Log4j;
 import org.junit.*;
 
@@ -116,13 +116,13 @@ public final class TestResourceBundleManager
      * Test the cleaning of the resource bundle manager cache.
      */
     @SuppressWarnings({ "static-method", "nls" })
-    @Test(expected = ResourceBundleManagerException.class)
+    @Test(expected = ResourceBundleException.class)
     public final void testClearCache()
     {
-        ResourceBundleManager.register("i18n/kakoo-foundation-common");
-        Assert.assertEquals(getExpectedDummyLanguageValue(), ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
+        ResourceBundleManager.register("i18n/fruits");
+        ResourceBundleManager.get("fruit.apple.name");
         ResourceBundleManager.clear();
-        ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language");
+        ResourceBundleManager.get("fruit.apple.name");
     }
 
     /**
@@ -171,12 +171,6 @@ public final class TestResourceBundleManager
     @Test
     public final void testRetrieveKeyCurrentLocale()
     {
-        String expected;
-
-        // Set the default locale of the JVM.
-        ResourceBundleManager.setLocale(Locale.getDefault());
-
-        ResourceBundleManager.clear();
         ResourceBundleManager.register("i18n/kakoo-foundation-common");
         Assert.assertEquals(getExpectedDummyLanguageValue(), ResourceBundleManager.get("kakoo-foundation-common.test.dummy.language"));
     }
@@ -256,5 +250,59 @@ public final class TestResourceBundleManager
         }
 
         return expected;
+    }
+
+    /**
+     * Test the retrieving of a resource bundle key through enumeration in the current locale.
+     */
+    @SuppressWarnings({ "static-method", "nls" })
+    @Test
+    public final void testRetrieveEnumKeyCurrentLocale()
+    {
+        ResourceBundleManager.clear();
+        String value = ResourceBundleManager.get(KakooFoundationCommonBundle.TEST_DUMMY);
+        String other = KakooFoundationCommonBundle.TEST_DUMMY.getValue();
+    }
+
+    /**
+     * Test the retrieving of a resource bundle key through enumeration in a given locale.
+     */
+    @SuppressWarnings({ "static-method", "nls" })
+    @Test
+    public final void testRetrieveEnumKeyOtherLocale()
+    {
+        String expected = "Eine Nachricht von der Komponente: kakoo-foundation-common";
+
+        ResourceBundleManager.clear();
+        Assert.assertEquals(expected, ResourceBundleManager.get(KakooFoundationCommonBundle.TEST_DUMMY, Locale.GERMAN));
+    }
+
+    /**
+     * Test the retrieving of a resource bundle key through enumeration in a given locale for which the resource
+     * bundle file in the given locale does not exist.
+     * <p>
+     * It should retrieve the value from the default bundle file and should not fail.
+     */
+    @SuppressWarnings({ "static-method", "nls" })
+    @Test
+    public final void testRetrieveEnumKeyOtherLocaleNotExistingBundle()
+    {
+        if (ResourceBundleManager.get(KakooFoundationCommonBundle.TEST_DUMMY, Locale.CHINESE).isEmpty())
+        {
+            fail("Should not be empty!");
+        }
+    }
+
+    /**
+     * Test the retrieving of a resource bundle key through enumeration with message formatting.
+     */
+    @SuppressWarnings({ "static-method", "nls" })
+    @Test
+    public final void testRetrieveEnumKeyCurrentLocaleFormatted()
+    {
+        String expected = "Die gewählte Farbe ist: 'gelb' und die ausgewählte Frucht ist: 'Erdbeere'";
+
+        String message = ResourceBundleManager.get(KakooFoundationCommonBundle.TEST_DUMMY_MESSAGE_FORMATTED, Locale.GERMAN, "gelb", "Erdbeere");
+        Assert.assertEquals(expected, message);
     }
 }
