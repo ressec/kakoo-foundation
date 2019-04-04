@@ -253,6 +253,44 @@ public final class TestResourceBundleManager
     }
 
     /**
+     * Returns the yellow color name according to the current locale.
+     * <p>
+     * @return Yellow color name in current language.
+     */
+    private String getExpectedYellowColorName()
+    {
+        String expected;
+
+        switch (ResourceBundleManager.getLocale().getLanguage())
+        {
+            case "en":
+                expected = "Yellow";
+                break;
+
+            case "de":
+                expected = "Gelb";
+                break;
+
+            case "fr":
+                expected = "Jaune";
+                break;
+
+            case "it":
+                expected = "Giallo";
+                break;
+
+            case "es":
+                expected = "Amarillo";
+                break;
+
+            default:
+                throw new ResourceBundleException(String.format("Unhandled: '%s' locale", ResourceBundleManager.getLocale()));
+        }
+
+        return expected;
+    }
+
+    /**
      * Test the retrieving of a resource bundle key through enumeration in the current locale.
      */
     @SuppressWarnings({ "static-method", "nls" })

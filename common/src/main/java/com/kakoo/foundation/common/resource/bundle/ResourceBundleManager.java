@@ -321,79 +321,77 @@ public class ResourceBundleManager
 
     /**
      * Registers a resource bundle file for the current locale.
+     *
      * @param baseBundleName Base bundle file name.
      */
     @Synchronized
     public static final void register(final @NonNull String baseBundleName)
     {
-        initialize();
-
         register(baseBundleName, locale);
     }
 
     /**
      * Registers a resource bundle file for the given locale.
-     * <br>
+     * <p>
      * If the resource bundle in the given locale cannot be found, the resource bundle in the default locale is
      * registered.
+     *
      * @param baseBundleName Base bundle file name.
      * @param locale Locale.
      */
     @Synchronized
     public static final void register(final @NonNull String baseBundleName, final @NonNull Locale locale)
     {
-        ResourceBundle bundle;
-
         initialize();
 
+        ResourceBundle bundle;
         List<ResourceBundle> resources;
 
-        // Register the bundle using the default locale.
-        if (!exist(baseBundleName, Locale.getDefault()))
+        // Register the bundle using the given locale if not the same as the current one.
+        if (!exist(baseBundleName, locale))
         {
-            resources = BUNDLES.get(Locale.getDefault());
+            resources = BUNDLES.get(locale);
             if (resources == null)
             {
                 resources = new ArrayList<>();
             }
 
-            resources.add(ResourceBundle.getBundle(baseBundleName, Locale.getDefault()));
-            BUNDLES.put(Locale.getDefault(), resources);
-            log.info(String.format("Registered resource bundle file: '%s', for default locale: '%s'", baseBundleName, Locale.getDefault()));
-        }
-
-        // Register the bundle using the given locale if not the same as the current locale.
-        if (locale != ResourceBundleManager.locale)
-        {
-            if (!exist(baseBundleName, locale))
+            bundle = ResourceBundle.getBundle(baseBundleName, locale);
+            if (bundle != null)
             {
-                resources = BUNDLES.get(locale);
-                if (resources == null)
-                {
-                    resources = new ArrayList<>();
-                }
-
-                bundle = ResourceBundle.getBundle(baseBundleName, locale);
-                if (bundle.getLocale() == locale)
-                {
-                    resources.add(ResourceBundle.getBundle(baseBundleName, locale));
-                    BUNDLES.put(locale, resources);
-                    log.info(String.format("Registered resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
-                }
-                else
-                {
-                    log.warn(String.format("Can't find resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
-                }
+                resources.add(ResourceBundle.getBundle(baseBundleName, locale));
+                BUNDLES.put(locale, resources);
+                log.info(String.format("Registered resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
             }
             else
             {
-                log.info(String.format("Already registered resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
+                log.warn(String.format("Can't find resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
             }
         }
+        else
+        {
+            log.info(String.format("Already registered resource bundle file: '%s', locale: '%s'", baseBundleName, locale));
+        }
+
+//        // Also register the bundle using the default locale.
+//        if (!exist(baseBundleName, Locale.getDefault()))
+//        {
+//            resources = BUNDLES.get(Locale.getDefault());
+//            if (resources == null)
+//            {
+//                resources = new ArrayList<>();
+//            }
+//
+//            bundle = ResourceBundle.getBundle(baseBundleName);
+//            resources.add(bundle);
+//            BUNDLES.put(Locale.getDefault(), resources);
+//            log.info(String.format("Registered resource bundle file: '%s', for default locale: '%s'", baseBundleName, Locale.getDefault()));
+//        }
     }
 
     /**
      * Registers an annotated class.
+     *
      * @param annotationClass Annotation class.
      * @param annotatedClass Annotated class.
      */
@@ -409,6 +407,7 @@ public class ResourceBundleManager
 
     /**
      * Registers a class annotated with the {@link Bundle} annotation.
+     *
      * @param annotationClass Annotation class.
      * @param annotatedClass Annotated class.
      */
@@ -431,6 +430,7 @@ public class ResourceBundleManager
 
     /**
      * Checks if the given annotation class is already registered for the given annotated class.
+     *
      * @param annotationClass Annotation class.
      * @param annotatedClass Annotated class.
      * @param baseBundleName Base bundle file name.
@@ -450,6 +450,7 @@ public class ResourceBundleManager
 
     /**
      * Updates the data structure keeping a trace of the association between the annotation class, the annotated class and the resource bundle file name.
+     *
      * @param annotationClass Annotation class.
      * @param annotatedClass Annotated class.
      * @param baseBundleName Base bundle file name.
@@ -478,7 +479,6 @@ public class ResourceBundleManager
      * Clears all registered resource bundles.
      * <p>
      * Only the directly registered resource bundles are cleared, not the ones registered through annotations.
-     * </p>
      */
     @Synchronized
     public static final void clear()
@@ -496,7 +496,7 @@ public class ResourceBundleManager
 
     /**
      * Returns the number of resource bundle files registered for the current locale.
-     * <p>
+     *
      * @return Number of resource bundle registered.
      */
     public static final int getCount()
@@ -506,12 +506,14 @@ public class ResourceBundleManager
 
     /**
      * Returns the number of resource bundle files registered for a given locale.
-     * <p>
+     *
      * @param locale Locale.
      * @return Number of resource bundle registered.
      */
     public static final int getCount(final @NonNull Locale locale)
     {
+        initialize();
+
         return BUNDLES.get(locale).size();
 
     }
@@ -528,17 +530,23 @@ public class ResourceBundleManager
 
     /**
      * Returns a list of the bundle file names registered for a given locale.
+     *
      * @param locale Locale.
      * @return List of resource bundle base name registered.
      */
     public static final List<String> getList(final @NonNull Locale locale)
     {
+        initialize();
+
         List<String> result = new ArrayList<>();
         List<ResourceBundle> resources = BUNDLES.get(locale);
 
-        for (ResourceBundle bundle : resources)
+        if (resources != null)
         {
-            result.add(bundle.getBaseBundleName());
+            for (ResourceBundle bundle : resources)
+            {
+                result.add(bundle.getBaseBundleName());
+            }
         }
 
         return result;
@@ -546,6 +554,7 @@ public class ResourceBundleManager
 
     /**
      * Automatically detect annotated elements on the classpath.
+     *
      * @see BundleAnnotationTypeVisitor
      * @see AnnotationDetector
      */
@@ -568,6 +577,7 @@ public class ResourceBundleManager
 
     /**
      * Extracts the resource bundle message.
+     *
      * @param key Key of the resource bundle.
      * @param parameters Parameters for message formatting.
      * @return Formatted message.
@@ -579,6 +589,7 @@ public class ResourceBundleManager
 
     /**
      * Extracts the resource bundle message.
+     *
      * @param key Key of the resource bundle.
      * @param locale Locale to use.
      * @param parameters Parameters for message formatting.
@@ -606,5 +617,17 @@ public class ResourceBundleManager
                 register(baseBundleName);
             }
         }
+    }
+
+    /**
+     * Injects the properties according to annotations declared on the given object.
+     *
+     * @param o Object for which to inject properties.
+     */
+    public static final void injectProperties(final @NonNull Object o)
+    {
+        initialize();
+
+        propertiesInjector.injectProperties(o);
     }
 }
