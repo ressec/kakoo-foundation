@@ -253,6 +253,44 @@ public final class TestResourceBundleManager
     }
 
     /**
+     * Returns the yellow color name according to the current locale.
+     * <p>
+     * @return Yellow color name in current language.
+     */
+    private String getExpectedYellowColorName()
+    {
+        String expected;
+
+        switch (ResourceBundleManager.getLocale().getLanguage())
+        {
+            case "en":
+                expected = "Yellow";
+                break;
+
+            case "de":
+                expected = "Gelb";
+                break;
+
+            case "fr":
+                expected = "Jaune";
+                break;
+
+            case "it":
+                expected = "Giallo";
+                break;
+
+            case "es":
+                expected = "Amarillo";
+                break;
+
+            default:
+                throw new ResourceBundleException(String.format("Unhandled: '%s' locale", ResourceBundleManager.getLocale()));
+        }
+
+        return expected;
+    }
+
+    /**
      * Test the retrieving of a resource bundle key through enumeration in the current locale.
      */
     @SuppressWarnings({ "static-method", "nls" })
@@ -303,6 +341,19 @@ public final class TestResourceBundleManager
         String expected = "Die gewählte Farbe ist: 'gelb' und die ausgewählte Frucht ist: 'Erdbeere'";
 
         String message = ResourceBundleManager.get(KakooFoundationCommonBundle.TEST_DUMMY_MESSAGE_FORMATTED, Locale.GERMAN, "gelb", "Erdbeere");
+        Assert.assertEquals(expected, message);
+    }
+
+    /**
+     * Test the retrieving of a resource bundle key with message formatting.
+     */
+    @SuppressWarnings({ "static-method", "nls" })
+    @Test
+    public final void testRetrieveKeyCurrentLocaleFormatted()
+    {
+        String expected = "Die gewählte Farbe ist: 'gelb' und die ausgewählte Frucht ist: 'Erdbeere'";
+
+        String message = ResourceBundleManager.get("kakoo-foundation-common.test.dummy.message.formatted", Locale.GERMAN, "gelb", "Erdbeere");
         Assert.assertEquals(expected, message);
     }
 }
