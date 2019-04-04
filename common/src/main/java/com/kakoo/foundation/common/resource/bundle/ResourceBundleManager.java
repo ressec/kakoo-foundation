@@ -174,8 +174,6 @@ public class ResourceBundleManager
      */
     public static final String get(final Enum<? extends IBundle> key, final @NonNull Locale locale)
     {
-        initialize();
-
         return get(key, locale, null);
     }
 
@@ -203,6 +201,8 @@ public class ResourceBundleManager
      */
     public static final String get(final @NonNull String key, final @NonNull Locale locale, final Object... parameters)
     {
+        initialize();
+
         return retrieve(lookup(key), key, locale, parameters);
     }
 
