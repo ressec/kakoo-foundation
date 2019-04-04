@@ -305,4 +305,17 @@ public final class TestResourceBundleManager
         String message = ResourceBundleManager.get(KakooFoundationCommonBundle.TEST_DUMMY_MESSAGE_FORMATTED, Locale.GERMAN, "gelb", "Erdbeere");
         Assert.assertEquals(expected, message);
     }
+
+    /**
+     * Test the retrieving of a resource bundle key with message formatting.
+     */
+    @SuppressWarnings({ "static-method", "nls" })
+    @Test
+    public final void testRetrieveKeyCurrentLocaleFormatted()
+    {
+        String expected = "Die gewählte Farbe ist: 'gelb' und die ausgewählte Frucht ist: 'Erdbeere'";
+
+        String message = ResourceBundleManager.get("kakoo-foundation-common.test.dummy.message.formatted", Locale.GERMAN, "gelb", "Erdbeere");
+        Assert.assertEquals(expected, message);
+    }
 }
